@@ -35,7 +35,6 @@ export default function UserListModal({ title, users, loading, emptyText, onClos
           display: 'flex',
           flexDirection: 'column',
         }}
-        // sm screens: fully rounded
         onClick={e => e.stopPropagation()}
       >
         {/* Handle bar — solo mobile */}
