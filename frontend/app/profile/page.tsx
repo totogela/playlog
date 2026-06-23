@@ -335,6 +335,9 @@ export default function ProfilePage() {
   const [editingProfile, setEditingProfile] = useState(false);
   const [followingCount, setFollowingCount] = useState(0);
   const [followerCount,  setFollowerCount]  = useState(0);
+  const [modal,          setModal]          = useState<'followers' | 'following' | null>(null);
+  const [modalUsers,     setModalUsers]     = useState<Array<{ id: string; username: string; avatar_url: string | null; bio: string | null }>>([]);
+  const [modalLoading,   setModalLoading]   = useState(false);
 
   useEffect(() => {
     if (!loading && !user) { router.push('/login'); return; }
@@ -402,6 +405,21 @@ export default function ProfilePage() {
         </div>
       </div>
     );
+  }
+
+  async function openModal(type: 'followers' | 'following') {
+    if (!user) return;
+    setModal(type);
+    setModalLoading(true);
+    setModalUsers([]);
+    const col    = type === 'followers' ? 'follower_id'  : 'following_id';
+    const filter = type === 'followers' ? 'following_id' : 'follower_id';
+    const { data: follows } = await supabase.from('follows').select(col).eq(filter, user.id).limit(50);
+    const ids = (follows ?? []).map((f: Record<string, string>) => f[col]);
+    if (ids.length === 0) { setModalLoading(false); return; }
+    const { data: users } = await supabase.from('users').select('id, username, avatar_url, bio').in('id', ids);
+    setModalUsers(users ?? []);
+    setModalLoading(false);
   }
 
   async function saveFavorite(slot: number, game: FaveGame) {
@@ -489,15 +507,20 @@ export default function ProfilePage() {
         </div>
         <div className="flex gap-8 text-center">
           {[
-            { value: total,          label: 'Juegos'     },
-            { value: thisYear,       label: 'Este año'   },
-            { value: followingCount, label: 'Siguiendo'  },
-            { value: followerCount,  label: 'Seguidores' },
-          ].map(({ value, label }) => (
-            <div key={label}>
-              <div className="text-2xl font-black text-white">{value}</div>
-              <div className="text-[10px] uppercase tracking-widest text-gray-500 mt-0.5">{label}</div>
-            </div>
+            { value: total,          label: 'Juegos',     onClick: null                           },
+            { value: thisYear,       label: 'Este año',   onClick: null                           },
+            { value: followingCount, label: 'Siguiendo',  onClick: () => openModal('following')   },
+            { value: followerCount,  label: 'Seguidores', onClick: () => openModal('followers')   },
+          ].map(({ value, label, onClick }) => (
+            onClick
+              ? <button key={label} onClick={onClick} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                  <div className="text-2xl font-black text-white">{value}</div>
+                  <div className="text-[10px] uppercase tracking-widest text-accent mt-0.5">{label}</div>
+                </button>
+              : <div key={label}>
+                  <div className="text-2xl font-black text-white">{value}</div>
+                  <div className="text-[10px] uppercase tracking-widest text-gray-500 mt-0.5">{label}</div>
+                </div>
           ))}
         </div>
       </div>
@@ -915,6 +938,54 @@ export default function ProfilePage() {
         onSave={saveProfile}
         onClose={() => setEditingProfile(false)}
       />
+    )}
+
+    {/* Modal seguidores/siguiendo */}
+    {modal && (
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+        style={{ background: 'rgba(0,0,0,0.75)' }}
+        onClick={() => setModal(null)}
+      >
+        <div
+          className="w-full max-w-sm rounded-2xl border border-border bg-surface overflow-hidden"
+          onClick={e => e.stopPropagation()}
+        >
+          <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+            <h2 className="text-sm font-black uppercase tracking-widest text-white">
+              {modal === 'followers' ? 'Seguidores' : 'Siguiendo'}
+            </h2>
+            <button onClick={() => setModal(null)} style={{ background: 'none', border: 'none', color: '#6b7280', fontSize: 22, cursor: 'pointer', lineHeight: 1 }}>×</button>
+          </div>
+          <div className="overflow-y-auto max-h-96 divide-y divide-border/50">
+            {modalLoading ? (
+              <div className="py-8 text-center text-sm text-gray-500 animate-pulse">Cargando...</div>
+            ) : modalUsers.length === 0 ? (
+              <div className="py-10 text-center text-sm text-gray-500">
+                {modal === 'followers' ? 'Sin seguidores aún' : 'No seguís a nadie aún'}
+              </div>
+            ) : modalUsers.map(u => (
+              <Link
+                key={u.id}
+                href={`/user/${u.username}`}
+                onClick={() => setModal(null)}
+                className="flex items-center gap-3 px-5 py-3 hover:bg-white/5 transition-colors"
+              >
+                <div className="h-9 w-9 flex-shrink-0 rounded-full overflow-hidden border border-border">
+                  {u.avatar_url
+                    ? <img src={u.avatar_url} alt={u.username} className="h-full w-full object-cover" />
+                    : <div className="h-full w-full flex items-center justify-center bg-accent/20 text-sm font-black text-accent">{u.username[0]?.toUpperCase()}</div>
+                  }
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-sm text-white">{u.username}</p>
+                  {u.bio && <p className="text-xs text-gray-500 line-clamp-1">{u.bio}</p>}
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </div>
     )}
     </>
   );
