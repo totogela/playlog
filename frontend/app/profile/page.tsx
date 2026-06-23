@@ -478,9 +478,123 @@ export default function ProfilePage() {
     { id: 'lists',    label: 'Listas'   },
   ];
 
+  const wishlistCount = entries.filter(e => e.status === 'wishlist').length;
+  const recentActivity = entries.filter(e => e.status !== 'wishlist').slice(0, 4);
+
   return (
     <>
-    <div className="py-8">
+
+    {/* ── MOBILE LAYOUT (Letterboxd style) ── */}
+    <div className="sm:hidden pb-20">
+
+      {/* Avatar + info centrado */}
+      <div className="flex flex-col items-center pt-8 pb-5 px-4">
+        <div
+          className="h-20 w-20 rounded-full overflow-hidden border-2 border-accent flex-shrink-0 mb-3"
+        >
+          {avatarUrl
+            ? <img src={avatarUrl} alt={username} className="h-full w-full object-cover" />
+            : <div className="h-full w-full flex items-center justify-center bg-accent/20 text-3xl font-black text-accent">{initial}</div>
+          }
+        </div>
+        <h1 className="text-xl font-black text-white">{username}</h1>
+        {bio && <p className="text-sm text-gray-400 mt-1 text-center max-w-xs">{bio}</p>}
+        <button
+          onClick={() => setEditingProfile(true)}
+          className="mt-3 rounded-lg border border-border px-4 py-1.5 text-xs font-semibold text-gray-300 hover:border-accent hover:text-accent transition-colors"
+        >
+          Editar perfil
+        </button>
+      </div>
+
+      {/* FAVORITOS */}
+      <div className="px-4 mb-5">
+        <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2">Favoritos</p>
+        <div className="flex gap-2">
+          {favorites.map((fave, i) => (
+            <div key={i} className="flex-1 relative aspect-[2/3]">
+              {fave ? (
+                <button onClick={() => setPickerSlot(i)} className="block w-full h-full">
+                  <div className="relative w-full h-full overflow-hidden rounded border border-border">
+                    <GameCoverImage
+                      steamAppId={fave.steam_app_id}
+                      coverUrl={fave.cover_url}
+                      name={fave.name}
+                      className="object-cover"
+                    />
+                  </div>
+                </button>
+              ) : (
+                <button
+                  onClick={() => setPickerSlot(i)}
+                  className="flex w-full h-full items-center justify-center rounded border border-dashed border-border text-gray-700 hover:border-accent hover:text-accent transition-colors"
+                >
+                  <span className="text-lg">+</span>
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ACTIVIDAD RECIENTE */}
+      {recentActivity.length > 0 && (
+        <div className="px-4 mb-2">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2">Actividad reciente</p>
+          <div className="flex gap-2">
+            {recentActivity.map(entry => {
+              const rating = entry.ratings?.[0]?.overall;
+              return (
+                <div key={entry.id} className="flex-1 flex flex-col items-center gap-1">
+                  <Link href={`/game/${entry.games.rawg_id ?? entry.games.steam_app_id}`} className="block w-full aspect-[2/3] relative overflow-hidden rounded border border-border hover:border-accent transition-colors">
+                    <GameCoverImage
+                      steamAppId={entry.games.steam_app_id}
+                      coverUrl={entry.games.cover_url}
+                      name={entry.games.name}
+                      className="object-cover"
+                    />
+                  </Link>
+                  {rating && <Stars value={rating} size="xs" />}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+      <Link href="#" onClick={() => { setTab('activity'); }} className="flex items-center justify-between px-4 py-3 text-sm text-gray-500 hover:text-accent transition-colors border-b border-border/50">
+        <span className="text-xs font-semibold">Más actividad</span>
+        <span className="text-xs">›</span>
+      </Link>
+
+      {/* STATS — iOS-style list rows */}
+      <div className="mt-3 border-t border-border/60 divide-y divide-border/60">
+        {[
+          { label: 'Juegos', value: total, href: null },
+          { label: 'Este año', value: thisYear, href: null },
+          { label: 'Completados', value: completed, href: null },
+          { label: 'Reseñas', value: reviewCount, href: null },
+          { label: 'Wishlist', value: wishlistCount, href: null },
+          { label: 'Siguiendo', value: followingCount, href: `/user/${username}/following` },
+          { label: 'Seguidores', value: followerCount, href: `/user/${username}/followers` },
+        ].map(({ label, value, href }) => {
+          const inner = (
+            <div className="flex items-center justify-between px-4 py-3.5">
+              <span className="text-sm text-gray-300">{label}</span>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-bold text-white">{value}</span>
+                {href && <span className="text-gray-600 text-base leading-none">›</span>}
+              </div>
+            </div>
+          );
+          return href
+            ? <Link key={label} href={href} className="block hover:bg-white/5 transition-colors">{inner}</Link>
+            : <div key={label}>{inner}</div>;
+        })}
+      </div>
+    </div>
+
+    {/* ── DESKTOP LAYOUT ── */}
+    <div className="hidden sm:block py-8">
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 pb-6 border-b border-border">
