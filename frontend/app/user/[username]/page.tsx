@@ -193,16 +193,16 @@ export default function UserProfilePage() {
         {/* Stats — estilo Letterboxd */}
         <div className="mt-5 border-t border-b border-border/60 py-3 flex items-center justify-around">
           {[
-            { label: 'Juegos',     value: games.length,   onClick: null                           },
-            { label: 'Este año',   value: thisYear.length, onClick: null                           },
-            { label: 'Siguiendo',  value: followingCount,  onClick: () => openModal('following')   },
-            { label: 'Seguidores', value: followerCount,   onClick: () => openModal('followers')   },
+            { label: 'Juegos',     value: games.length,    href: null                                    },
+            { label: 'Este año',   value: thisYear.length, href: null                                    },
+            { label: 'Siguiendo',  value: followingCount,  href: `/user/${profile.username}/following`   },
+            { label: 'Seguidores', value: followerCount,   href: `/user/${profile.username}/followers`   },
           ].map((s, i) => (
-            s.onClick
-              ? <button key={i} onClick={s.onClick} className="flex flex-col items-center gap-0.5 px-2 hover:opacity-75 transition-opacity cursor-pointer" style={{ background: 'none', border: 'none' }}>
+            s.href
+              ? <Link key={i} href={s.href} className="flex flex-col items-center gap-0.5 px-2 hover:opacity-75 transition-opacity">
                   <span className="text-xl font-black text-white leading-none">{s.value}</span>
                   <span className="text-[9px] font-bold uppercase tracking-widest text-accent whitespace-nowrap">{s.label}</span>
-                </button>
+                </Link>
               : <div key={i} className="flex flex-col items-center gap-0.5 px-2">
                   <span className="text-xl font-black text-white leading-none">{s.value}</span>
                   <span className="text-[9px] font-bold uppercase tracking-widest text-gray-500 whitespace-nowrap">{s.label}</span>

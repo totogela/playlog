@@ -194,9 +194,6 @@ export default function Navbar() {
           })}
         </div>
 
-        {/* NotificationBell — siempre una sola instancia */}
-        {user && <div className="flex-shrink-0"><NotificationBell /></div>}
-
         {/* Derecha desktop */}
         <div className="hidden md:flex items-center gap-1 flex-shrink-0" style={{ marginLeft: 'auto' }}>
           {/* Búsqueda desktop */}
@@ -317,45 +314,28 @@ export default function Navbar() {
           )}
         </div>
 
-        {/* ── Mobile: derecha de la barra ────────────────────────────── */}
-        <div className="flex md:hidden items-center gap-1 ml-auto">
-          {/* Búsqueda mobile */}
+        {/* ── Mobile: iconos derechos ─────────────────────────────────── */}
+        <div className="flex md:hidden items-center ml-auto" style={{ gap: 2 }}>
           <button
             onClick={() => { setMobileSearch(v => !v); setMobileOpen(false); }}
-            className="flex items-center justify-center"
-            style={{ width: 44, height: 44, color: linkColor, borderRadius: 8 }}
+            style={{ width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', background: 'none', border: 'none', borderRadius: 8, cursor: 'pointer' }}
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           </button>
 
-          {/* Avatar mobile */}
-          {user && (
-            <Link href="/profile" className="flex-shrink-0 overflow-hidden" style={{ width: 32, height: 32, borderRadius: '50%', border: '2px solid #2c3440', background: 'rgba(232,93,4,0.2)' }}>
-              {avatarUrl
-                ? <img src={avatarUrl} alt={username} className="h-full w-full object-cover" />
-                : <div className="h-full w-full flex items-center justify-center font-black" style={{ fontSize: 12, color: '#e85d04' }}>{initial}</div>
-              }
-            </Link>
-          )}
+          {user && <NotificationBell />}
 
-          {/* Hamburguesa */}
           <button
             onClick={() => { setMobileOpen(v => !v); setMobileSearch(false); }}
-            className="flex items-center justify-center"
-            style={{ width: 44, height: 44, color: linkColor, borderRadius: 8 }}
+            style={{ width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', color: mobileOpen ? '#e85d04' : '#9ca3af', background: 'none', border: 'none', borderRadius: 8, cursor: 'pointer' }}
             aria-label="Menú"
           >
-            {mobileOpen ? (
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            ) : (
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            )}
+            {mobileOpen
+              ? <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
+              : <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
+            }
           </button>
         </div>
       </div>
@@ -409,58 +389,77 @@ export default function Navbar() {
 
       {/* ── Mobile drawer ───────────────────────────────────────────── */}
       {mobileOpen && (
-        <div className="md:hidden" style={{ background: 'rgba(20,24,28,0.98)', borderTop: '1px solid #2c3440', backdropFilter: 'blur(14px)' }}>
-          <div style={{ padding: '4px 0 20px' }}>
-            {/* Nav links */}
+        <div className="md:hidden" style={{ background: '#14181c', borderTop: '1px solid #2c3440' }}>
+
+          {/* Avatar strip — solo si logueado */}
+          {user && (
+            <Link href="/profile" onClick={() => setMobileOpen(false)}
+              style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 20px', borderBottom: '1px solid #2c3440', background: '#1c2028' }}>
+              <div style={{ width: 42, height: 42, borderRadius: '50%', overflow: 'hidden', border: '2px solid #e85d04', flexShrink: 0, background: 'rgba(232,93,4,0.2)' }}>
+                {avatarUrl
+                  ? <img src={avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 16, color: '#e85d04' }}>{initial}</div>
+                }
+              </div>
+              <div>
+                <p style={{ fontWeight: 700, fontSize: 15, color: '#ffffff' }}>{username}</p>
+                <p style={{ fontSize: 12, color: '#6b7280', marginTop: 1 }}>Ver mi perfil →</p>
+              </div>
+            </Link>
+          )}
+
+          {/* Nav links */}
+          <div style={{ padding: '6px 0' }}>
             {NAV_LINKS.map(({ href, label }) => {
               const active = pathname === href || (href !== '/' && pathname.startsWith(href));
               return (
-                <Link
-                  key={href}
-                  href={href}
-                  onClick={() => setMobileOpen(false)}
-                  className="flex items-center"
-                  style={{
-                    minHeight: 52,
-                    padding: '0 20px',
-                    fontSize: 16,
-                    fontWeight: active ? 700 : 500,
-                    color: active ? '#ffffff' : '#9ca3af',
-                    borderLeft: active ? '3px solid #e85d04' : '3px solid transparent',
-                  }}
-                >
+                <Link key={href} href={href} onClick={() => setMobileOpen(false)} style={{
+                  display: 'flex', alignItems: 'center',
+                  minHeight: 52, padding: '0 20px',
+                  fontSize: 17, fontWeight: active ? 700 : 500,
+                  color: active ? '#ffffff' : '#9ca3af',
+                  borderLeft: `3px solid ${active ? '#e85d04' : 'transparent'}`,
+                }}>
                   {label}
                 </Link>
               );
             })}
+          </div>
 
-            <div style={{ borderTop: '1px solid #2c3440', margin: '8px 0' }} />
-
+          {/* Acciones */}
+          <div style={{ padding: '8px 16px 24px', borderTop: '1px solid #2c3440' }}>
             {user ? (
               <>
-                <Link href="/search" onClick={() => setMobileOpen(false)} className="flex items-center justify-center font-bold text-white" style={{ minHeight: 48, margin: '4px 20px', background: '#e85d04', borderRadius: 10, fontSize: 15 }}>
+                <Link href="/search" onClick={() => setMobileOpen(false)} style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  minHeight: 50, marginBottom: 8,
+                  background: '#e85d04', borderRadius: 12,
+                  fontWeight: 700, fontSize: 16, color: '#ffffff',
+                }}>
                   + Log un juego
                 </Link>
-                <Link href="/profile" onClick={() => setMobileOpen(false)} className="flex items-center gap-3" style={{ minHeight: 52, padding: '0 20px', fontSize: 15, color: '#d1d5db' }}>
-                  {avatarUrl
-                    ? <img src={avatarUrl} alt="" className="h-8 w-8 rounded-full object-cover border border-border flex-shrink-0" />
-                    : <div className="h-8 w-8 rounded-full flex items-center justify-center font-black text-xs border border-border flex-shrink-0" style={{ background: 'rgba(232,93,4,0.2)', color: '#e85d04' }}>{initial}</div>
-                  }
-                  <span>Mi perfil</span>
-                </Link>
-                <Link href="/steam" onClick={() => setMobileOpen(false)} className="flex items-center" style={{ minHeight: 52, padding: '0 20px', fontSize: 15, color: '#d1d5db' }}>
-                  Importar Steam
-                </Link>
-                <button onClick={() => { handleSignOut(); setMobileOpen(false); }} className="flex w-full items-center" style={{ minHeight: 52, padding: '0 20px', fontSize: 15, color: '#6b7280' }}>
+                <button onClick={() => { handleSignOut(); setMobileOpen(false); }} style={{
+                  width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  minHeight: 44, background: 'none', border: '1px solid #2c3440',
+                  borderRadius: 12, fontSize: 14, color: '#6b7280', cursor: 'pointer',
+                }}>
                   Cerrar sesión
                 </button>
               </>
             ) : (
-              <div style={{ padding: '8px 20px' }} className="flex gap-3">
-                <Link href="/login" onClick={() => setMobileOpen(false)} className="flex-1 flex items-center justify-center font-semibold" style={{ minHeight: 50, border: '1px solid #2c3440', borderRadius: 10, fontSize: 15, color: '#9ca3af' }}>
+              <div style={{ display: 'flex', gap: 10 }}>
+                <Link href="/login" onClick={() => setMobileOpen(false)} style={{
+                  flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  minHeight: 50, border: '1px solid #2c3440', borderRadius: 12,
+                  fontSize: 16, fontWeight: 600, color: '#9ca3af',
+                }}>
                   Entrar
                 </Link>
-                <Link href="/login" onClick={() => setMobileOpen(false)} className="flex-1 flex items-center justify-center font-bold text-white" style={{ minHeight: 50, background: '#e85d04', borderRadius: 10, fontSize: 15 }}>
+                <Link href="/login" onClick={() => setMobileOpen(false)} style={{
+                  flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  minHeight: 50, background: '#e85d04', borderRadius: 12,
+                  fontSize: 16, fontWeight: 700, color: '#ffffff',
+                }}>
                   Crear cuenta
                 </Link>
               </div>

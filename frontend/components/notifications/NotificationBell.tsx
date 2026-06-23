@@ -66,7 +66,7 @@ export default function NotificationBell() {
     fetchNotifs();
 
     const channel = supabase
-      .channel('notifications')
+      .channel(`notifications-${userId}`)
       .on('postgres_changes', {
         event: 'INSERT',
         schema: 'public',

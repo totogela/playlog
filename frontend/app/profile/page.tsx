@@ -508,16 +508,16 @@ export default function ProfilePage() {
         </div>
         <div className="flex gap-8 text-center">
           {[
-            { value: total,          label: 'Juegos',     onClick: null                           },
-            { value: thisYear,       label: 'Este año',   onClick: null                           },
-            { value: followingCount, label: 'Siguiendo',  onClick: () => openModal('following')   },
-            { value: followerCount,  label: 'Seguidores', onClick: () => openModal('followers')   },
-          ].map(({ value, label, onClick }) => (
-            onClick
-              ? <button key={label} onClick={onClick} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+            { value: total,          label: 'Juegos',     href: null                                },
+            { value: thisYear,       label: 'Este año',   href: null                                },
+            { value: followingCount, label: 'Siguiendo',  href: `/user/${username}/following`       },
+            { value: followerCount,  label: 'Seguidores', href: `/user/${username}/followers`       },
+          ].map(({ value, label, href }) => (
+            href
+              ? <Link key={label} href={href}>
                   <div className="text-2xl font-black text-white">{value}</div>
                   <div className="text-[10px] uppercase tracking-widest text-accent mt-0.5">{label}</div>
-                </button>
+                </Link>
               : <div key={label}>
                   <div className="text-2xl font-black text-white">{value}</div>
                   <div className="text-[10px] uppercase tracking-widest text-gray-500 mt-0.5">{label}</div>
