@@ -144,14 +144,14 @@ export async function getPopularGames(): Promise<RawgSearchResult> {
 
 // Igual que getPopularGames pero enriquece con steamAppId para covers portrait reales
 export async function getPopularGamesEnriched(): Promise<Array<RawgGame & { steamAppId?: number }>> {
-  const url = `${BASE}/games?key=${KEY}&ordering=-added&page_size=14&metacritic=80,100`;
+  const url = `${BASE}/games?key=${KEY}&ordering=-added&page_size=8&metacritic=80,100`;
   const res = await fetch(url, { next: { revalidate: 86400 } });
   if (!res.ok) throw new Error('RAWG popular games failed');
   const data: RawgSearchResult = await res.json();
 
-  // Fetch game details en paralelo para obtener Steam App IDs (cached 24h)
+  // Fetch solo los primeros 8 juegos en paralelo para Steam IDs (cached 24h)
   const enriched = await Promise.allSettled(
-    data.results.map(async (game) => {
+    data.results.slice(0, 8).map(async (game) => {
       try {
         const detail = await fetch(`${BASE}/games/${game.id}?key=${KEY}`, { next: { revalidate: 86400 } });
         if (!detail.ok) return { ...game, steamAppId: undefined };
@@ -173,7 +173,7 @@ export async function getPopularGamesEnriched(): Promise<Array<RawgGame & { stea
 }
 
 export async function getTopRatedGames(): Promise<RawgSearchResult> {
-  const url = `${BASE}/games?key=${KEY}&ordering=-metacritic&page_size=10&metacritic=90,100`;
+  const url = `${BASE}/games?key=${KEY}&ordering=-metacritic&page_size=8&metacritic=90,100`;
   const res = await fetch(url, { next: { revalidate: 86400 } });
   if (!res.ok) throw new Error('RAWG top rated failed');
   return res.json();
@@ -181,8 +181,8 @@ export async function getTopRatedGames(): Promise<RawgSearchResult> {
 
 export async function getRecentGames(): Promise<RawgSearchResult> {
   const year = new Date().getFullYear();
-  const url  = `${BASE}/games?key=${KEY}&ordering=-added&dates=${year - 1}-01-01,${year}-12-31&page_size=10&metacritic=70,100`;
-  const res  = await fetch(url, { next: { revalidate: 3600 } });
+  const url  = `${BASE}/games?key=${KEY}&ordering=-added&dates=${year - 1}-01-01,${year}-12-31&page_size=8&metacritic=70,100`;
+  const res  = await fetch(url, { next: { revalidate: 21600 } });
   if (!res.ok) throw new Error('RAWG recent games failed');
   return res.json();
 }

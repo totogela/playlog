@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { getPopularGamesEnriched, getTopRatedGames, getRecentGames, getHiddenGems, rawgImg, type RawgGame } from '@/lib/rawg';
@@ -5,6 +6,24 @@ import SearchBar from '@/components/games/SearchBar';
 import CommunityReviews from '@/components/home/CommunityReviews';
 import ActivityFeed from '@/components/home/ActivityFeed';
 import GameCoverImage from '@/components/games/GameCoverImage';
+
+/* ─── Skeleton para Suspense fallback ───────────────────────────────── */
+function FeedSkeleton() {
+  return (
+    <div className="space-y-3">
+      {[1, 2, 3, 4].map(i => (
+        <div key={i} className="flex items-center gap-3 animate-pulse">
+          <div className="h-8 w-8 flex-shrink-0 rounded-full" style={{ background: '#1c2028' }} />
+          <div className="h-10 w-8 flex-shrink-0 rounded" style={{ background: '#1c2028' }} />
+          <div className="flex-1 space-y-1.5">
+            <div className="h-3 w-3/4 rounded" style={{ background: '#1c2028' }} />
+            <div className="h-2.5 w-1/3 rounded" style={{ background: '#1c2028' }} />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 /* ─── Portrait cover card — usa Steam 600×900 cuando está disponible ─ */
 function GameCover({ game, priority = false }: { game: RawgGame & { steamAppId?: number }; priority?: boolean }) {
@@ -198,11 +217,15 @@ export default async function HomePage() {
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
             <div>
               <SectionHeader title="Actividad reciente" href="/activity" />
-              <ActivityFeed />
+              <Suspense fallback={<FeedSkeleton />}>
+                <ActivityFeed />
+              </Suspense>
             </div>
             <div>
               <SectionHeader title="Últimas reseñas" />
-              <CommunityReviews />
+              <Suspense fallback={<FeedSkeleton />}>
+                <CommunityReviews />
+              </Suspense>
             </div>
           </div>
         </section>

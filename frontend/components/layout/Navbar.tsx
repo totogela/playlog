@@ -169,17 +169,25 @@ export default function Navbar() {
               <Link
                 key={href}
                 href={href}
-                className="transition-colors hover:text-white"
+                className="group relative transition-colors hover:text-white"
                 style={{
                   padding: '6px 14px',
                   fontSize: 13,
-                  fontWeight: 500,
+                  fontWeight: active ? 700 : 500,
                   color: active ? '#ffffff' : linkColor,
                   borderRadius: 6,
                   textShadow: transparent ? '0 1px 4px rgba(0,0,0,0.8)' : 'none',
                 }}
               >
                 {label}
+                <span
+                  className="absolute bottom-0 left-2 right-2 h-0.5 rounded-full origin-left transition-all duration-200 group-hover:opacity-100 group-hover:scale-x-100"
+                  style={{
+                    background: '#e85d04',
+                    opacity: active ? 1 : 0,
+                    transform: active ? 'scaleX(1)' : 'scaleX(0)',
+                  }}
+                />
               </Link>
             );
           })}
