@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabase';
 import GameCoverImage from '@/components/games/GameCoverImage';
 import FollowButton from '@/components/social/FollowButton';
 import UserAvatar from '@/components/ui/UserAvatar';
+import UserListModal from '@/components/social/UserListModal';
 
 interface UserProfile {
   id: string;
@@ -298,47 +299,14 @@ export default function UserProfilePage() {
         );
       })()}
 
-      {/* ── Modal seguidores/siguiendo ── */}
       {modal && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ background: 'rgba(0,0,0,0.75)' }}
-          onClick={() => setModal(null)}
-        >
-          <div
-            className="w-full max-w-sm rounded-2xl border border-border bg-surface overflow-hidden"
-            onClick={e => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between px-5 py-4 border-b border-border">
-              <h2 className="text-sm font-black uppercase tracking-widest text-white">
-                {modal === 'followers' ? 'Seguidores' : 'Siguiendo'}
-              </h2>
-              <button onClick={() => setModal(null)} className="text-gray-500 hover:text-white transition-colors text-xl leading-none">×</button>
-            </div>
-            <div className="overflow-y-auto max-h-96 divide-y divide-border/50">
-              {modalLoading ? (
-                <div className="py-8 text-center text-sm text-gray-500 animate-pulse">Cargando...</div>
-              ) : modalUsers.length === 0 ? (
-                <div className="py-10 text-center text-sm text-gray-500">
-                  {modal === 'followers' ? 'Sin seguidores aún' : 'No sigue a nadie aún'}
-                </div>
-              ) : modalUsers.map(u => (
-                <Link
-                  key={u.id}
-                  href={`/user/${u.username}`}
-                  onClick={() => setModal(null)}
-                  className="flex items-center gap-3 px-5 py-3 hover:bg-surface/80 transition-colors"
-                >
-                  <UserAvatar username={u.username} avatarUrl={u.avatar_url} size="sm" />
-                  <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-sm text-white">{u.username}</p>
-                    {u.bio && <p className="text-xs text-gray-500 line-clamp-1">{u.bio}</p>}
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </div>
+        <UserListModal
+          title={modal === 'followers' ? 'Seguidores' : 'Siguiendo'}
+          users={modalUsers}
+          loading={modalLoading}
+          emptyText={modal === 'followers' ? 'Este usuario no tiene seguidores aún' : 'Este usuario no sigue a nadie aún'}
+          onClose={() => setModal(null)}
+        />
       )}
 
     </div>
