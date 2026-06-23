@@ -1,5 +1,6 @@
 'use client';
 
+import { Suspense } from 'react';
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
@@ -113,7 +114,7 @@ function GameGrid({ game }: { game: RawgGame }) {
   );
 }
 
-export default function SearchPage() {
+function SearchContent() {
   const searchParams = useSearchParams();
   const router       = useRouter();
 
@@ -322,3 +323,5 @@ export default function SearchPage() {
     </div>
   );
 }
+
+export default function SearchPage() { return <Suspense><SearchContent /></Suspense>; }

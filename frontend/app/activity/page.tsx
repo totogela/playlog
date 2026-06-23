@@ -1,5 +1,6 @@
 'use client';
 
+import { Suspense } from 'react';
 import { useEffect, useState, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -310,7 +311,7 @@ function ReviewsTab() {
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 
-export default function ActivityPage() {
+function ActivityContent() {
   const searchParams = useSearchParams();
   const router       = useRouter();
   const tab          = searchParams.get('tab') === 'reviews' ? 'reviews' : 'activity';
@@ -353,3 +354,5 @@ export default function ActivityPage() {
     </div>
   );
 }
+
+export default function ActivityPage() { return <Suspense><ActivityContent /></Suspense>; }
