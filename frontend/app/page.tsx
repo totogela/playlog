@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { getPopularGamesEnriched, getTopRatedGames, getRecentGames, getHiddenGems, rawgImg, type RawgGame } from '@/lib/rawg';
 import SearchBar from '@/components/games/SearchBar';
 import CommunityReviews from '@/components/home/CommunityReviews';
-import ActivityFeed from '@/components/home/ActivityFeed';
+import HomeFeed from '@/components/home/HomeFeed';
 import GameCoverImage from '@/components/games/GameCoverImage';
 
 /* ─── Skeleton para Suspense fallback ───────────────────────────────── */
@@ -216,9 +216,9 @@ export default async function HomePage() {
         <section style={{ marginBottom: 52 }}>
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
             <div>
-              <SectionHeader title="Actividad reciente" href="/activity" />
+              <SectionHeader title="Actividad" href="/activity" />
               <Suspense fallback={<FeedSkeleton />}>
-                <ActivityFeed />
+                <HomeFeed />
               </Suspense>
             </div>
             <div>

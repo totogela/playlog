@@ -7,6 +7,9 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { searchGamesFiltered, rawgImg, type RawgGame } from '@/lib/rawg';
 import SearchBar from '@/components/games/SearchBar';
+import { supabase } from '@/lib/supabase';
+import UserAvatar from '@/components/ui/UserAvatar';
+import FollowButton from '@/components/social/FollowButton';
 
 const GENRES = [
   { slug: 'action',       label: 'Acción'      },
@@ -114,6 +117,95 @@ function GameGrid({ game }: { game: RawgGame }) {
   );
 }
 
+interface UserResult {
+  id: string;
+  username: string;
+  bio: string | null;
+  avatar_url: string | null;
+  game_count: number;
+}
+
+function PeopleTab({ query }: { query: string }) {
+  const [users,   setUsers]   = useState<UserResult[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!query.trim()) { setUsers([]); return; }
+    setLoading(true);
+    supabase
+      .from('users')
+      .select('id, username, bio, avatar_url')
+      .ilike('username', `%${query}%`)
+      .limit(20)
+      .then(async ({ data }) => {
+        if (!data) { setUsers([]); setLoading(false); return; }
+        // Count games for each user
+        const withCounts = await Promise.all(
+          (data as { id: string; username: string; bio: string | null; avatar_url: string | null }[]).map(async u => {
+            const { count } = await supabase
+              .from('user_games')
+              .select('id', { count: 'exact', head: true })
+              .eq('user_id', u.id);
+            return { ...u, game_count: count ?? 0 };
+          })
+        );
+        setUsers(withCounts);
+        setLoading(false);
+      });
+  }, [query]);
+
+  if (!query.trim()) return (
+    <div className="py-20 text-center">
+      <p className="text-4xl mb-3">👥</p>
+      <p className="text-sm text-gray-500">Escribí un nombre para buscar personas</p>
+    </div>
+  );
+
+  if (loading) return (
+    <div className="space-y-3">
+      {[1,2,3,4,5].map(i => (
+        <div key={i} className="flex items-center gap-4 rounded-xl border border-border/60 bg-surface/40 p-4 animate-pulse">
+          <div className="h-12 w-12 flex-shrink-0 rounded-full bg-border" />
+          <div className="flex-1 space-y-2">
+            <div className="h-3 w-32 rounded bg-border" />
+            <div className="h-2.5 w-48 rounded bg-border" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+
+  if (users.length === 0) return (
+    <div className="py-24 text-center">
+      <p className="text-5xl mb-4">🔍</p>
+      <p className="font-semibold text-gray-300">No se encontraron usuarios</p>
+      <p className="text-sm text-gray-600 mt-1">Probá con otro nombre</p>
+    </div>
+  );
+
+  return (
+    <div className="space-y-3">
+      {users.map(u => (
+        <div key={u.id} className="flex items-center gap-4 rounded-xl border border-border/60 bg-surface/40 p-4 hover:border-border transition-colors">
+          <Link href={`/user/${u.username}`} className="flex-shrink-0">
+            <UserAvatar username={u.username} avatarUrl={u.avatar_url} size="md" className="hover:ring-2 hover:ring-accent transition-all" />
+          </Link>
+          <div className="flex-1 min-w-0">
+            <Link href={`/user/${u.username}`} className="font-bold text-white hover:text-accent transition-colors">
+              {u.username}
+            </Link>
+            {u.bio && <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">{u.bio}</p>}
+            <p className="text-[10px] text-gray-600 mt-0.5">{u.game_count} juegos registrados</p>
+          </div>
+          <div className="flex-shrink-0">
+            <FollowButton targetUserId={u.id} />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function SearchContent() {
   const searchParams = useSearchParams();
   const router       = useRouter();
@@ -124,6 +216,7 @@ function SearchContent() {
   const orderP    = searchParams.get('order')    ?? '';
   const platformP = searchParams.get('platform') ?? '';
   const viewP     = searchParams.get('view')     ?? 'grid';
+  const tabP      = searchParams.get('tab')      ?? 'games';
 
   const [results, setResults] = useState<RawgGame[]>([]);
   const [loading, setLoading] = useState(false);
@@ -174,12 +267,48 @@ function SearchContent() {
   return (
     <div className="py-8 space-y-6">
 
+      {/* Tabs */}
+      <div className="flex gap-6 border-b border-border -mb-2">
+        {[
+          { id: 'games',  label: 'Juegos'   },
+          { id: 'people', label: 'Personas' },
+        ].map(t => (
+          <button
+            key={t.id}
+            onClick={() => setParam('tab', t.id === 'games' ? '' : t.id)}
+            style={{
+              paddingBottom: 10,
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase' as const,
+              borderTop: 'none',
+              borderLeft: 'none',
+              borderRight: 'none',
+              borderBottom: tabP === t.id ? '2px solid #e85d04' : '2px solid transparent',
+              color: tabP === t.id ? '#e85d04' : '#6b7280',
+              marginBottom: -1,
+              background: 'none',
+              cursor: 'pointer',
+              transition: 'color 0.15s',
+            }}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
       {/* Search bar */}
       <div className="max-w-2xl">
         <SearchBar initialValue={q} autoFocus={!q} />
       </div>
 
+      {/* Personas tab */}
+      {tabP === 'people' && <PeopleTab query={q} />}
+
       {/* Sin query: grid de géneros */}
+      {tabP !== 'people' && (
+      <>
       {!q && !hasFilters && (
         <div className="space-y-3">
           <p className="text-xs font-bold uppercase tracking-widest text-gray-500">Explorar por género</p>
@@ -319,6 +448,8 @@ function SearchContent() {
           )}
 
         </div>
+      )}
+      </>
       )}
     </div>
   );

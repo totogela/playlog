@@ -5,13 +5,14 @@ import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
 import { supabase } from '@/lib/supabase';
 import GameCoverImage from '@/components/games/GameCoverImage';
+import UserAvatar from '@/components/ui/UserAvatar';
 
 interface FeedEntry {
   id: string;
   status: string;
   hours_played: number | null;
   updated_at: string;
-  users: { username: string };
+  users: { username: string; avatar_url: string | null };
   games: { name: string; steam_app_id: number; rawg_id: number | null; cover_url: string | null };
   rating: number | null;
 }
@@ -59,7 +60,7 @@ export default function FollowingFeed() {
         .from('user_games')
         .select(`
           id, status, hours_played, updated_at,
-          users!inner ( username ),
+          users!inner ( username, avatar_url ),
           games!inner ( name, steam_app_id, rawg_id, cover_url )
         `)
         .in('user_id', followingIds)
@@ -100,6 +101,9 @@ export default function FollowingFeed() {
         const stars  = e.rating ? Math.round(e.rating / 2) : null;
         return (
           <div key={e.id} className="flex items-center gap-3 py-2.5">
+            <Link href={`/user/${e.users.username}`} className="flex-shrink-0">
+              <UserAvatar username={e.users.username} avatarUrl={e.users.avatar_url} size="sm" className="hover:ring-2 hover:ring-accent transition-all" />
+            </Link>
             <Link href={`/game/${gameId}`} className="flex-shrink-0">
               <div className="relative h-12 w-8 overflow-hidden rounded border border-border/60 hover:border-accent/60 transition-colors">
                 <GameCoverImage steamAppId={e.games.steam_app_id} coverUrl={e.games.cover_url} name={e.games.name} className="object-cover" />
