@@ -89,21 +89,25 @@ export default function UserProfilePage() {
     setModal(type);
     setModalLoading(true);
     setModalUsers([]);
-    if (type === 'followers') {
-      const { data } = await supabase
-        .from('follows')
-        .select('users!follower_id ( id, username, avatar_url, bio )')
-        .eq('following_id', profile.id)
-        .limit(50);
-      setModalUsers((data ?? []).map((r: { users: { id: string; username: string; avatar_url: string | null; bio: string | null } }) => r.users));
-    } else {
-      const { data } = await supabase
-        .from('follows')
-        .select('users!following_id ( id, username, avatar_url, bio )')
-        .eq('follower_id', profile.id)
-        .limit(50);
-      setModalUsers((data ?? []).map((r: { users: { id: string; username: string; avatar_url: string | null; bio: string | null } }) => r.users));
-    }
+
+    const col = type === 'followers' ? 'follower_id' : 'following_id';
+    const filter = type === 'followers' ? 'following_id' : 'follower_id';
+
+    const { data: follows } = await supabase
+      .from('follows')
+      .select(col)
+      .eq(filter, profile.id)
+      .limit(50);
+
+    const ids = (follows ?? []).map((f: Record<string, string>) => f[col]);
+    if (ids.length === 0) { setModalLoading(false); return; }
+
+    const { data: users } = await supabase
+      .from('users')
+      .select('id, username, avatar_url, bio')
+      .in('id', ids);
+
+    setModalUsers(users ?? []);
     setModalLoading(false);
   }
 

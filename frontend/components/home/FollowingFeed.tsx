@@ -61,23 +61,20 @@ export default function FollowingFeed() {
         .select(`
           id, status, hours_played, updated_at,
           users!inner ( username, avatar_url ),
-          games!inner ( name, steam_app_id, rawg_id, cover_url )
+          games!inner ( name, steam_app_id, rawg_id, cover_url ),
+          ratings ( overall )
         `)
         .in('user_id', followingIds)
         .neq('status', 'wishlist')
         .order('updated_at', { ascending: false })
-        .limit(10);
+        .limit(15);
 
       if (!data) { setLoading(false); return; }
 
-      // Fetch ratings
-      const ugIds = data.map((r: { id: string }) => r.id);
-      const { data: ratingsData } = await supabase
-        .from('ratings').select('user_game_id, overall').in('user_game_id', ugIds);
-
-      const ratingsMap = new Map((ratingsData ?? []).map((r: { user_game_id: string; overall: number }) => [r.user_game_id, r.overall]));
-
-      setFeed((data as unknown as FeedEntry[]).map(e => ({ ...e, rating: ratingsMap.get(e.id) ?? null })));
+      setFeed((data as unknown as Array<FeedEntry & { ratings: Array<{ overall: number }> }>).map(e => ({
+        ...e,
+        rating: e.ratings?.[0]?.overall ?? null,
+      })));
       setLoading(false);
     }
     load();

@@ -34,37 +34,34 @@ function timeAgo(dateStr: string): string {
   return `hace ${days}d`;
 }
 
+// Module-level cache so switching tabs doesn't re-fetch
+let _cache: ActivityEntry[] | null = null;
+
 export default function ActivityFeed() {
-  const [activity, setActivity] = useState<ActivityEntry[]>([]);
-  const [loading,  setLoading]  = useState(true);
+  const [activity, setActivity] = useState<ActivityEntry[]>(_cache ?? []);
+  const [loading,  setLoading]  = useState(_cache === null);
 
   useEffect(() => {
+    if (_cache !== null) return;
     supabase
       .from('user_games')
       .select(`
         id, status, hours_played, updated_at,
         users!inner ( username, avatar_url ),
-        games!inner ( id, name, steam_app_id, rawg_id, cover_url )
+        games!inner ( id, name, steam_app_id, rawg_id, cover_url ),
+        ratings ( overall )
       `)
       .neq('status', 'wishlist')
       .order('updated_at', { ascending: false })
-      .limit(8)
-      .then(async ({ data }) => {
+      .limit(10)
+      .then(({ data }) => {
         if (!data) { setLoading(false); return; }
-
-        // Fetch rating for each entry
-        const ugIds = data.map((r: { id: string }) => r.id);
-        const { data: ratingsData } = await supabase
-          .from('ratings')
-          .select('user_game_id, overall')
-          .in('user_game_id', ugIds);
-
-        const ratingsMap = new Map((ratingsData ?? []).map((r: { user_game_id: string; overall: number }) => [r.user_game_id, r.overall]));
-
-        setActivity((data as unknown as ActivityEntry[]).map(e => ({
+        const entries = (data as unknown as Array<ActivityEntry & { ratings: Array<{ overall: number }> }>).map(e => ({
           ...e,
-          rating: ratingsMap.get(e.id) ?? null,
-        })));
+          rating: e.ratings?.[0]?.overall ?? null,
+        }));
+        _cache = entries;
+        setActivity(entries);
         setLoading(false);
       });
   }, []);
