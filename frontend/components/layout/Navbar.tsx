@@ -194,6 +194,9 @@ export default function Navbar() {
           })}
         </div>
 
+        {/* NotificationBell — siempre una sola instancia */}
+        {user && <div className="flex-shrink-0"><NotificationBell /></div>}
+
         {/* Derecha desktop */}
         <div className="hidden md:flex items-center gap-1 flex-shrink-0" style={{ marginLeft: 'auto' }}>
           {/* Búsqueda desktop */}
@@ -262,8 +265,6 @@ export default function Navbar() {
             )}
           </div>
 
-          {user && <NotificationBell />}
-
           {user ? (
             <>
               <div className="relative" ref={dropRef}>
@@ -328,8 +329,6 @@ export default function Navbar() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           </button>
-
-          {user && <NotificationBell />}
 
           {/* Avatar mobile */}
           {user && (
