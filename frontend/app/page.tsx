@@ -3,7 +3,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { getPopularGamesEnriched, getTopRatedGames, getRecentGames, getHiddenGems, rawgImg, type RawgGame } from '@/lib/rawg';
 import SearchBar from '@/components/games/SearchBar';
-import CommunityReviews from '@/components/home/CommunityReviews';
+import ReviewFeedTabs from '@/components/home/ReviewFeedTabs';
 import HomeFeed from '@/components/home/HomeFeed';
 import GameCoverImage from '@/components/games/GameCoverImage';
 
@@ -222,9 +222,8 @@ export default async function HomePage() {
               </Suspense>
             </div>
             <div>
-              <SectionHeader title="Últimas reseñas" />
               <Suspense fallback={<FeedSkeleton />}>
-                <CommunityReviews />
+                <ReviewFeedTabs />
               </Suspense>
             </div>
           </div>

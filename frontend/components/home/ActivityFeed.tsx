@@ -53,7 +53,7 @@ export default function ActivityFeed() {
       `)
       .neq('status', 'wishlist')
       .order('updated_at', { ascending: false })
-      .limit(10)
+      .limit(5)
       .then(({ data }) => {
         if (!data) { setLoading(false); return; }
         const entries = (data as unknown as Array<ActivityEntry & { ratings: Array<{ overall: number }> }>).map(e => ({

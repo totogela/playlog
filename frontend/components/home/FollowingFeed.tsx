@@ -67,7 +67,7 @@ export default function FollowingFeed() {
         .in('user_id', followingIds)
         .neq('status', 'wishlist')
         .order('updated_at', { ascending: false })
-        .limit(15);
+        .limit(5);
 
       if (!data) { setLoading(false); return; }
 
